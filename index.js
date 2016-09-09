@@ -1,5 +1,6 @@
 var bleno = require("bleno");
 var BlenoPrimaryService = bleno.PrimaryService;
+var Characteristic = bleno.Characteristic;
 
 var uuidHWService = "hw00";
 
@@ -12,13 +13,26 @@ bleno.on('stateChange', function(state) {
 	}
 });
 
+
+
 bleno.on('advertisingStart', function(error) {
 	console.log(error ? "error" + error : "success");
 	
 	if (!error) {
 		bleno.setServices([
 			new BlenoPrimaryService({
-				uuid:uuidHWService
+				uuid:uuidHWService,
+				characteristics: [
+					new Characteristic({
+						uuid:"fffffffffffffffffffffffffffffff0",
+						properties:["indicate"],
+						value:null,
+						onIndicate:function() {
+							console.log("onIndicate");
+							return "HelloWorld";
+						}
+					})
+				]
 			})
 		]);
 	}
