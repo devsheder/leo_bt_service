@@ -25,11 +25,10 @@ bleno.on('advertisingStart', function(error) {
 				characteristics: [
 					new Characteristic({
 						uuid:"fffffffffffffffffffffffffffffff0",
-						properties:["indicate"],
+						properties:["read"],
 						value:null,
-						onIndicate:function() {
-							console.log("onIndicate");
-							return "HelloWorld";
+						onReadRequest:function(offset, callback) {
+							callback(this.RESULT_SUCCESS, new Buffer("Hello world!"));
 						}
 					})
 				]
