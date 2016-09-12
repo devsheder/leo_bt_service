@@ -2,7 +2,7 @@ var bleno = require("bleno");
 var BlenoPrimaryService = bleno.PrimaryService;
 var Characteristic = bleno.Characteristic;
 
-var uuidHWService = "hw00";
+var uuidHWService = "fffffffffffffffffffffffffffffff0";
 
 bleno.on('stateChange', function(state) {
 	console.log(state);
