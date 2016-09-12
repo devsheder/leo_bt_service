@@ -25,14 +25,22 @@ bleno.on('advertisingStart', function(error) {
 				characteristics: [
 					new Characteristic({
 						uuid:"fffffffffffffffffffffffffffffff0",
-						properties:["read"],
+						properties:["read", "write"],
 						value:null,
 						onReadRequest:function(offset, callback) {
 							callback(this.RESULT_SUCCESS, new Buffer("Hello world!"));
-						}
+						},
+						onWriteRequest:function(data, offset, withoutResponse, callback) {
+							console.log(data.toString());
+							callback(this.RESULT_SUCCESS);
+						},
 					})
 				]
 			})
 		]);
 	}
+});
+
+bleno.on('advertisingStop', function(error) {
+	console.log(error ? "error" + error : "success");
 });
