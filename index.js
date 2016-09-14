@@ -1,3 +1,18 @@
+// rouge 5V, marron masse et orange commande, BCM 17 (pin 11)
+var Cylon = require("cylon");
+Cylon.robot({
+	connections: {
+		raspi : {adaptor : "raspi"}
+	},
+	devices: {
+		servo : {driver : "servo", pin : 11}
+	},
+	work: function(my) {
+		my.servo.angle(0);
+	}
+}).start();
+
+
 var bleno = require("bleno");
 var BlenoPrimaryService = bleno.PrimaryService;
 var Characteristic = bleno.Characteristic;
@@ -12,8 +27,6 @@ bleno.on('stateChange', function(state) {
 		bleno.stopAdvertising();
 	}
 });
-
-
 
 bleno.on('advertisingStart', function(error) {
 	console.log(error ? "error" + error : "success");
