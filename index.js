@@ -1,34 +1,62 @@
 // rouge 5V, marron masse et orange commande, BCM 17 (pin 11)
 var Cylon = require("cylon");
-// forward = 66006f0072007700610072006400, backward = 6200610063006b007700610072006400, left = 6c00650066007400, right = 72006900670068007400
-var availableInstructions = ["66006f0072007700610072006400", "6200610063006b007700610072006400", "6c00650066007400", "72006900670068007400"];
+// forward = 66006f0072007700610072006400, backward = 6200610063006b007700610072006400, left = 6c00650066007400, right = 72006900670068007400, stop = "730074006f007000"
+var availableInstructions = ["66006f0072007700610072006400", "6200610063006b007700610072006400", "6c00650066007400", "72006900670068007400", "730074006f007000"];
+
+var isLeoMoving = false;
 
 function move(instruction) {
 	if (availableInstructions.indexOf(instruction) >= 0) {
-		console.log("Leo is moving !");
-
-		var angle = 0;
+		var leoMovement = {
+			isStart:false,
+			direction:"000000"
+		};	
 		if (instruction === "66006f0072007700610072006400") {
-			angle = 10;
+			// forward
+			leoMovement.isStart=true;
+			leoMovement.direction="ff0022";
+			console.log("Leo is moving forward !");
 		} else if (instruction === "6200610063006b007700610072006400") {
-			angle = 20;
+			// backward
+			leoMovement.isStart=true;
+			leoMovement.direction="ff2200";
+			console.log("Leo is moving backward !");
 		} else if (instruction === "6c00650066007400") {
-			angle = 30;
+			// left
 		} else if (instruction === "72006900670068007400") {
-			angle = 40;
+			// right
+		} else if (instruction === "730074006f007000"){
+			console.log("Leo is stopping !");
 		}
 
 		Cylon.robot({
 			connections: {
-				raspi : {adaptor : "raspi"}
+				raspi: { adaptor: 'raspi' }
 			},
+			
 			devices: {
-				servo : {driver : "servo", pin : 11}
+				leds: { driver: 'rgb-led', redPin: 11, greenPin: 13, bluePin: 15},
+				led: { driver: 'led', pin: 11}
 			},
+			
 			work: function(my) {
-				my.servo.angle(angle);
+				if (leoMovement.isStart) {
+					if (!isLeoMoving) {
+						my.led.turnOn();
+					}
+					my.leds.setRGB("000000");
+					my.leds.setRGB(leoMovement.direction);
+					isLeoMoving = true;
+				} else {
+					if (isLeoMoving) {
+						my.led.turnOff();
+					}
+					my.leds.setRGB("000000");
+					isLeoMoving = false;
+				}
 			}
 		}).start();
+
 	}
 	console.log("---");
 }
