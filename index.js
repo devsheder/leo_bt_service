@@ -4,6 +4,7 @@ var Cylon = require("cylon");
 var availableInstructions = ["66006f0072007700610072006400", "6200610063006b007700610072006400", "6c00650066007400", "72006900670068007400", "730074006f007000"];
 
 var isLeoMoving = false;
+var currentRobot;
 
 function move(instruction) {
 	if (availableInstructions.indexOf(instruction) >= 0) {
@@ -17,14 +18,14 @@ function move(instruction) {
 		if (instruction === "66006f0072007700610072006400") {
 			// forward
 			leoMovementParams.mustMove=true;
-			leoMovementParams.leftWheel=-1;
+			leoMovementParams.leftWheel=1;
 			leoMovementParams.rigthWheel=1;
 			console.log("Leo is moving forward !");
 			isLeoMoving = true;
 		} else if (instruction === "6200610063006b007700610072006400") {
 			// backward
 			leoMovementParams.mustMove=true;
-			leoMovementParams.leftWheel=1;
+			leoMovementParams.leftWheel=-1;
 			leoMovementParams.rigthWheel=-1;
 			console.log("Leo is moving backward !");
 			isLeoMoving = true;
@@ -32,145 +33,78 @@ function move(instruction) {
 			// left
 			leoMovementParams.mustMove=true;
 			leoMovementParams.leftWheel=1;
-			leoMovementParams.rigthWheel=1;
+			leoMovementParams.rigthWheel=-1;
 			console.log("Leo is turning forward !");
 			isLeoMoving = true;
 		} else if (instruction === "72006900670068007400") {
-			// left
+			// rigth
 			leoMovementParams.mustMove=true;
 			leoMovementParams.leftWheel=-1;
-			leoMovementParams.rigthWheel=-1;
+			leoMovementParams.rigthWheel=1;
 			console.log("Leo is turning rigth !");
 			isLeoMoving = true;
 		} else if (instruction === "730074006f007000"){
 			console.log("Leo is stopping !");
-			isLeoMoving = false;
+			if(currentRobot) {
+				currentRobot.halt();
+				currentRobot = null;
+			}
 		}
 
-		// Contrôle de la roue gauche
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 11}
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.mustMove) {
+		// Gestion des pin d'activation des roues
+		if (leoMovementParams.mustMove) {
+			currentRobot = Cylon.robot({
+				connections: {
+					raspi: { adaptor: 'raspi' }
+				},
+				
+				devices: {
+					led1: { driver: 'led', pin: 11},
+					led2: { driver: 'led', pin: 13},
+					led3: { driver: 'led', pin: 15},
+					led4: { driver: 'led', pin: 12},
+					led5: { driver: 'led', pin: 16},
+					led6: { driver: 'led', pin: 18}
+				},
+				
+				work: function(my) {
 					// Mise en mouvement du robot
 					// Pin de contrôle principal du driver de la roue gauche
-					my.led.turnOn();
-				} else {
-					// Arrêt complet du robot
-					my.led.turnOff();
+					my.led1.turnOn();
+					// Pin de contrôle principal du driver de la roue droite
+					my.led4.turnOn();
+	
+					// Gestion des pins du driver des moteurs
+					if (leoMovementParams.leftWheel === 1) {
+						// marche avant roue droite
+						my.led2.turnOff();
+						// marche avant roue gauche
+						my.led3.turnOn();
+					} else if (leoMovementParams.leftWheel === -1) {
+						// marche arrière roue droite
+						my.led2.turnOn();
+						// marche arrière roue gauche
+						my.led3.turnOff();
+					}
+	
+					// Gestion des du driver du driver du moteur de la roue droite
+					if (leoMovementParams.rigthWheel === 1) {
+						// marche avant roue droite
+						my.led5.turnOn();
+						// marche avant roue gauche
+						my.led6.turnOff();
+						
+					} else if (leoMovementParams.rigthWheel === -1) {
+						// marche arrière roue droite
+						my.led5.turnOff();
+						// marche arrière roue gauche
+						my.led6.turnOn();
+					}
 				}
-			}
-		}).start();
+			});
+			currentRobot.start();
+		}
 
-		// Gestion des 2 pins du driver du driver du moteur de la roue gauche
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 13}		
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.leftWheel === 1) {
-					// marche avant
-					my.led.turnOn();					
-				} else if (leoMovementParams.leftWheel === -1) {
-					// marche arrière
-					my.led.turnOff();
-				}
-			}
-		}).start();
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 15}		
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.leftWheel === 1) {
-					// marche avant
-					my.led.turnOff();					
-				} else if (leoMovementParams.leftWheel === -1) {
-					// marche arrière
-					my.led.turnOn();
-				}
-			}
-		}).start();
-
-		// Contrôle de la roue droite
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 22}
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.mustMove) {
-					// Mise en mouvement du robot
-					// Pin de contrôle principal du driver de la roue gauche
-					my.led.turnOn();
-				} else {
-					my.led.turnOff();
-				}
-			}
-		}).start();
-
-		// Gestion des 2 pins du driver du driver du moteur de la roue droite
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 16}		
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.rigthWheel === 1) {
-					// marche avant
-					my.led.turnOn();					
-				} else if (leoMovementParams.rigthWheel === -1) {
-					// marche arrière
-					my.led.turnOff();
-				}
-			}
-		}).start();
-		Cylon.robot({
-			connections: {
-				raspi: { adaptor: 'raspi' }
-			},
-			
-			devices: {
-				led: { driver: 'led', pin: 18}		
-			},
-			
-			work: function(my) {
-				if (leoMovementParams.rigthWheel === 1) {
-					// marche avant
-					my.led.turnOff();					
-				} else if (leoMovementParams.rigthWheel === -1) {
-					// marche arrière
-					my.led.turnOn();
-				}
-			}
-		}).start();
-
-		// TODO Contrôle de la roue droite
 	}
 	console.log("---");
 }
